@@ -1,0 +1,75 @@
+# Builds an installable Android APK and attaches it to a GitHub Release, so the
+# app can be installed straight from a phone browser with no local tooling.
+#
+# Run it from the Actions tab ("Run workflow"), or let a push do it.
+name: Build APK
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore: ['README.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types and run tests
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: '1'
+
+      # The generated release build type signs with the bundled debug keystore,
+      # which is enough to install on a personal device.
+      - name: Assemble release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Name the APK after the run
+        id: apk
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             "dist/Reminders-${{ github.run_number }}.apk"
+          echo "path=dist/Reminders-${{ github.run_number }}.apk" >> "$GITHUB_OUTPUT"
+          ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reminders-apk
+          path: ${{ steps.apk.outputs.path }}
+
+      - name: Publish the APK as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "apk-${{ github.run_number }}" \
+            "${{ steps.apk.outputs.path }}" \
+            --title "Reminders - build ${{ github.run_number }}" \
+            --notes "Tap the .apk below on an Android phone to install. Android will ask you to allow installing from your browser; that is expected for an app that does not come from the Play Store. Built from ${{ github.sha }}." \
+            --latest
