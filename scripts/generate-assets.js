@@ -67,16 +67,26 @@ function roundedRect(x, y, cx, cy, halfW, halfH, r) {
   return Math.hypot(dx, dy) <= r;
 }
 
+const BODY_TOP = 0.2;
+const BODY_BOTTOM = 0.7;
+
+/**
+ * Half-width of the bell body at `t` (0 at the crown, 1 at the mouth).
+ * The fractional power rounds off the dome; the quartic adds the flare that
+ * only kicks in near the bottom, leaving the sides almost straight between.
+ */
+function bellHalfWidth(t) {
+  return 0.36 * (0.7 * Math.pow(t, 0.4) + 0.3 * Math.pow(t, 4));
+}
+
 function inBell(x, y) {
-  if (disc(x, y, 0.5, 0.175, 0.05)) return true; // top knob
-  if (y >= 0.2 && y <= 0.665) {
-    // Dome flaring into a skirt: half-width grows with a gentle curve.
-    const t = (y - 0.2) / 0.465;
-    const halfW = 0.115 + 0.245 * Math.pow(t, 1.7);
-    if (Math.abs(x - 0.5) <= halfW) return true;
+  if (disc(x, y, 0.5, 0.165, 0.05)) return true; // top knob
+  if (y >= BODY_TOP && y <= BODY_BOTTOM) {
+    const t = (y - BODY_TOP) / (BODY_BOTTOM - BODY_TOP);
+    if (Math.abs(x - 0.5) <= bellHalfWidth(t)) return true;
   }
-  if (roundedRect(x, y, 0.5, 0.692, 0.395, 0.036, 0.032)) return true; // rim
-  if (disc(x, y, 0.5, 0.793, 0.072)) return true; // clapper
+  if (roundedRect(x, y, 0.5, 0.692, 0.4, 0.036, 0.032)) return true; // rim
+  if (disc(x, y, 0.5, 0.79, 0.068)) return true; // clapper
   return false;
 }
 
