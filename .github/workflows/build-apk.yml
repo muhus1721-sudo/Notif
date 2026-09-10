@@ -46,9 +46,37 @@ jobs:
 
       # The generated release build type signs with the bundled debug keystore,
       # which is enough to install on a personal device.
+      #
+      # A universal APK carries the engine compiled for all four ABIs — roughly
+      # 41 MB of native code no single phone can use. arm64-v8a covers every
+      # Android phone since ~2015; R8 then strips unused Java/Kotlin on top.
       - name: Assemble release APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: |
+          ./gradlew assembleRelease --no-daemon \
+            -PreactNativeArchitectures=arm64-v8a \
+            -Pandroid.enableMinifyInReleaseBuilds=true \
+            -Pandroid.enableShrinkResourcesInReleaseBuilds=true
+
+      # Shrinking is the one step that can break the app at runtime rather than
+      # at build time, so assert the pieces that matter actually survived.
+      - name: Verify the shrunk APK
+        working-directory: android/app/build/outputs/apk/release
+        run: |
+          set -euo pipefail
+          echo "--- ABIs included ---"
+          unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u
+          test -z "$(unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u | grep -v 'lib/arm64-v8a' || true)" \
+            || { echo "unexpected ABI present"; exit 1; }
+          unzip -l app-release.apk | grep -q 'lib/arm64-v8a/libreactnative.so'
+          echo "JS bundle:"
+          unzip -l app-release.apk | grep 'assets/index.android.bundle'
+          # Class names survive in the dex string pool; R8 must not have dropped
+          # the notifications module, which is the whole point of the app.
+          unzip -p app-release.apk classes.dex classes2.dex classes3.dex 2>/dev/null \
+            | grep -qa 'expo.modules.notifications' \
+            || { echo "notifications module missing from dex"; exit 1; }
+          echo "OK: arm64 only, JS bundle present, notifications module retained"
 
       - name: Name the APK after the run
         id: apk
@@ -71,5 +99,5 @@ jobs:
           gh release create "apk-${{ github.run_number }}" \
             "${{ steps.apk.outputs.path }}" \
             --title "Reminders - build ${{ github.run_number }}" \
-            --notes "Tap the .apk below on an Android phone to install. Android will ask you to allow installing from your browser; that is expected for an app that does not come from the Play Store. Built from ${{ github.sha }}." \
+            --notes "Tap the .apk below on an Android phone to install. Android will ask you to allow installing from your browser; that is expected for an app that does not come from the Play Store. Built for arm64 phones (anything from roughly 2015 onward). Built from ${{ github.sha }}." \
             --latest
