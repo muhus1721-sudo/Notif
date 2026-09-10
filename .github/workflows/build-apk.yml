@@ -49,34 +49,46 @@ jobs:
       #
       # A universal APK carries the engine compiled for all four ABIs — roughly
       # 41 MB of native code no single phone can use. arm64-v8a covers every
-      # Android phone since ~2015; R8 then strips unused Java/Kotlin on top.
+      # Android phone since ~2015 and is pure dead-weight removal.
+      #
+      # R8 minification would save perhaps 8 MB more, but it also renames
+      # classes, and Expo resolves its native modules reflectively by name. A
+      # mistake there fails when the app is opened rather than when it is built,
+      # and nothing in CI actually launches the app — so the trade is refused:
+      # a reminder that silently never fires is worse than 8 MB.
       - name: Assemble release APK
         working-directory: android
         run: |
           ./gradlew assembleRelease --no-daemon \
-            -PreactNativeArchitectures=arm64-v8a \
-            -Pandroid.enableMinifyInReleaseBuilds=true \
-            -Pandroid.enableShrinkResourcesInReleaseBuilds=true
+            -PreactNativeArchitectures=arm64-v8a
 
-      # Shrinking is the one step that can break the app at runtime rather than
-      # at build time, so assert the pieces that matter actually survived.
-      - name: Verify the shrunk APK
+      - name: Verify the packaged APK
         working-directory: android/app/build/outputs/apk/release
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          fail() { echo "VERIFY FAILED: $1"; exit 1; }
+
           echo "--- ABIs included ---"
           unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u
-          test -z "$(unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u | grep -v 'lib/arm64-v8a' || true)" \
-            || { echo "unexpected ABI present"; exit 1; }
-          unzip -l app-release.apk | grep -q 'lib/arm64-v8a/libreactnative.so'
-          echo "JS bundle:"
-          unzip -l app-release.apk | grep 'assets/index.android.bundle'
-          # Class names survive in the dex string pool; R8 must not have dropped
-          # the notifications module, which is the whole point of the app.
-          unzip -p app-release.apk classes.dex classes2.dex classes3.dex 2>/dev/null \
-            | grep -qa 'expo.modules.notifications' \
-            || { echo "notifications module missing from dex"; exit 1; }
+          extra=$(unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u | grep -v 'lib/arm64-v8a' || true)
+          [ -z "$extra" ] || fail "unexpected ABI: $extra"
+          unzip -l app-release.apk | grep -q 'lib/arm64-v8a/libreactnative.so' \
+            || fail "arm64 engine missing"
+
+          unzip -l app-release.apk | grep 'assets/index.android.bundle' \
+            || fail "JS bundle missing"
+
+          # Without minification class names are not renamed, so their absence
+          # from the dex string pool is a real signal rather than obfuscation.
+          rm -rf dexcheck && mkdir dexcheck
+          unzip -o -q app-release.apk 'classes*.dex' -d dexcheck || fail "no dex files"
+          echo "dex files: $(ls dexcheck | tr '\n' ' ')"
+          grep -qa 'expo.modules.notifications' dexcheck/*.dex \
+            || fail "notifications module missing from dex"
+          rm -rf dexcheck
+
           echo "OK: arm64 only, JS bundle present, notifications module retained"
+          ls -lh app-release.apk
 
       - name: Name the APK after the run
         id: apk
