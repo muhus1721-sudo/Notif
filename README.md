@@ -98,15 +98,46 @@ so nothing else in Expo Go is disturbed.
   `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`,
   `VIBRATE` and `WAKE_LOCK`.
 
-```bash
-npx eas build --profile development --platform android   # or ios
-npx eas build --profile preview --platform android       # installable APK
-```
+For a debuggable build that behaves exactly like a store install:
+`npx eas build --profile development --platform android`.
 
 `SCHEDULE_EXACT_ALARM` is what keeps delivery punctual on Android 12+. The stronger
 `USE_EXACT_ALARM` is deliberately left out, since it invites extra Play Store
 review; without it, a device in aggressive battery-saving mode may still delay a
 reminder by a few minutes.
+
+### Getting an APK
+
+**With EAS** — builds on Expo's servers, so you need no Android tooling locally.
+The `preview` profile is already set to emit an APK rather than an app bundle:
+
+```bash
+npm install -g eas-cli
+eas login                                          # a free Expo account
+eas build --profile preview --platform android
+```
+
+The first run registers the project and generates an upload keystore for you. When
+the build finishes the CLI prints a download link, also listed under the project on
+[expo.dev](https://expo.dev). Open that link on the phone, tap the `.apk`, and allow
+"install unknown apps" for your browser when prompted.
+
+**Locally** — needs the Android SDK (via Android Studio) and JDK 17+:
+
+```bash
+npx expo prebuild --platform android
+cd android && ./gradlew assembleRelease
+```
+
+The APK lands at `android/app/build/outputs/apk/release/app-release.apk`. React
+Native's generated `release` build type signs with the bundled debug keystore, so
+this installs on your own device with no signing setup — but generate a real
+keystore before distributing it anywhere.
+
+`android/` is generated and git-ignored; delete it and re-run `prebuild` after
+changing `app.json`. Note that `prebuild` also rewrites the `android`/`ios` npm
+scripts to `expo run:*`, which you may want to revert if you are still using
+Expo Go.
 
 ## Known limits
 
