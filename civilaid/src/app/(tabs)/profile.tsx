@@ -45,7 +45,7 @@ export default function ProfileScreen() {
       <AppText variant="title">Profile</AppText>
 
       <Card style={styles.identity}>
-        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.primaryFill }]}>
           <AppText variant="title" tone="onPrimary">
             {initials}
           </AppText>

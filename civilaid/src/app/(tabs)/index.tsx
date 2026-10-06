@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { Logo } from '@/components/brand/Logo';
 import { ComingSoon } from '@/components/ComingSoon';
 import { AppText, Screen } from '@/components/ui';
 
@@ -16,6 +17,7 @@ export default function HomeScreen() {
 
   return (
     <Screen>
+      <Logo height={30} tagline={false} />
       <View style={styles.header}>
         <AppText tone="muted">{greeting(new Date().getHours())},</AppText>
         <AppText variant="display">{firstName} 👋</AppText>

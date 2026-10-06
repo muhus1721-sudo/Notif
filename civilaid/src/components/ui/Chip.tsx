@@ -15,8 +15,8 @@ export function Chip({ label, selected, onPress }: Props) {
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? colors.primary : colors.surface,
-          borderColor: selected ? colors.primary : colors.border,
+          backgroundColor: selected ? colors.primaryFill : colors.surface,
+          borderColor: selected ? colors.primaryFill : colors.border,
         },
       ]}
     >

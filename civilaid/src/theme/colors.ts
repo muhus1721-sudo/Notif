@@ -8,6 +8,8 @@ export type Palette = {
   textFaint: string;
   primary: string;
   primaryPressed: string;
+  /** Background of filled buttons/badges that carry white text (meets 4.5:1 contrast). */
+  primaryFill: string;
   primarySoft: string;
   onPrimary: string;
   success: string;
@@ -20,6 +22,7 @@ export type Palette = {
   shadow: string;
 };
 
+// Brand colours come from the CivilAid logo: blue #1E5EFE (light) / #4C82FF (dark), navy #0A1330.
 export const light: Palette = {
   background: '#F5F7FB',
   surface: '#FFFFFF',
@@ -28,9 +31,10 @@ export const light: Palette = {
   text: '#0F172A',
   textMuted: '#475569',
   textFaint: '#94A3B8',
-  primary: '#2563EB',
-  primaryPressed: '#1D4ED8',
-  primarySoft: '#DBEAFE',
+  primary: '#1E5EFE',
+  primaryPressed: '#1A4FD6',
+  primaryFill: '#1E5EFE',
+  primarySoft: '#E0E9FF',
   onPrimary: '#FFFFFF',
   success: '#16A34A',
   successSoft: '#DCFCE7',
@@ -43,16 +47,17 @@ export const light: Palette = {
 };
 
 export const dark: Palette = {
-  background: '#0B1220',
-  surface: '#131C2E',
-  surfaceMuted: '#1B2538',
-  border: '#24304A',
+  background: '#0A1330',
+  surface: '#111C40',
+  surfaceMuted: '#18254F',
+  border: '#24325F',
   text: '#F1F5F9',
   textMuted: '#A5B1C4',
   textFaint: '#64748B',
-  primary: '#3B82F6',
-  primaryPressed: '#2563EB',
-  primarySoft: '#172B52',
+  primary: '#4C82FF',
+  primaryPressed: '#2459E0',
+  primaryFill: '#2F6BFF',
+  primarySoft: '#17295E',
   onPrimary: '#FFFFFF',
   success: '#22C55E',
   successSoft: '#12301F',

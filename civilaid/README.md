@@ -211,7 +211,7 @@ civilaid/
 Settings you might change:
 
 - `src/lib/config.ts`: app name, batch label, and the **sections** shown on sign-up (currently A–D).
-- `src/theme/colors.ts`: brand colours (primary `#2563EB`).
+- `src/theme/colors.ts`: brand colours (from the logo: blue `#1E5EFE`, navy `#0A1330`).
 
 Checks to run before committing:
 

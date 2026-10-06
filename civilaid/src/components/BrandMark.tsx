@@ -1,19 +1,14 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
-import { APP_NAME, BATCH_LABEL } from '@/lib/config';
-import { radius, useTheme } from '@/theme/ThemeProvider';
+import { BATCH_LABEL } from '@/lib/config';
 import { AppText } from './ui';
+import { Logo } from './brand/Logo';
 
-/** Logo tile + app name used on the auth screens. */
+/** Logo + batch line used on the auth screens. */
 export function BrandMark() {
-  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
-      <View style={[styles.logo, { backgroundColor: colors.primary }]}>
-        <Ionicons name="school" size={30} color={colors.onPrimary} />
-      </View>
-      <AppText variant="display">{APP_NAME}</AppText>
+      <Logo height={64} />
       <AppText variant="label" tone="muted">
         {BATCH_LABEL}
       </AppText>
@@ -22,6 +17,5 @@ export function BrandMark() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', gap: 6, marginTop: 24, marginBottom: 8 },
-  logo: { width: 64, height: 64, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  wrap: { alignItems: 'center', gap: 14, marginTop: 28, marginBottom: 8 },
 });

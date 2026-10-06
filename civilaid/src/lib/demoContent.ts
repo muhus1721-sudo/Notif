@@ -99,7 +99,7 @@ $$
 const subjects: SubjectWithLectures[] = [
   {
     id: 'demo-s1', title: 'Engineering Mechanics', code: 'CE-111', description: 'Statics of particles and rigid bodies.',
-    color: '#2563EB', sort_order: 1, is_published: true,
+    color: '#1E5EFE', sort_order: 1, is_published: true,
     lectures: [
       { id: 'demo-l1', subject_id: 'demo-s1', title: 'Forces and Equilibrium', description: 'Vectors, resultants and free-body diagrams.', sort_order: 1, created_at: '', is_published: true, module_ids: ['demo-m1', 'demo-m2'] },
       { id: 'demo-l2', subject_id: 'demo-s1', title: 'Moments and Couples', description: 'Turning effect of forces.', sort_order: 2, created_at: '', is_published: true, module_ids: ['demo-m3'] },
