@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { isSupabaseConfigured } from '@/lib/config';
+import { setDemoFullAccess } from '@/lib/demoContent';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/lib/types';
 import { friendlyAuthError, type SignUpInput } from '@/lib/validation';
@@ -88,15 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
+  const startDemo = useCallback((p: Profile) => {
+    setDemoFullAccess(p.role === 'admin');
+    setDemo(p);
+  }, []);
+
   const signIn = useCallback(async (email: string, password: string) => {
-    if (!isSupabaseConfigured) return setDemo(demoProfile(email));
+    if (!isSupabaseConfigured) return startDemo(demoProfile(email));
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) throw new Error(friendlyAuthError(error));
-  }, []);
+  }, [startDemo]);
 
   const signUp = useCallback(async (input: SignUpInput) => {
     if (!isSupabaseConfigured) {
-      setDemo(demoProfile(input.email, input));
+      startDemo(demoProfile(input.email, input));
       return 'signedIn' as const;
     }
     const cmsId = input.cmsId.trim();
@@ -117,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('An account with this email already exists. Try signing in.');
     }
     return data.session ? 'signedIn' : 'confirmEmail';
-  }, []);
+  }, [startDemo]);
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) return setDemo(null);

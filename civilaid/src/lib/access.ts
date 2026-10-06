@@ -21,3 +21,10 @@ export function getAccessStatus(profile: Profile, now: Date = new Date()): Acces
 export function formatDate(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+/** Can open every lecture (not just the free first one). */
+export function hasFullAccess(profile: Profile | null): boolean {
+  if (!profile) return false;
+  const kind = getAccessStatus(profile).kind;
+  return kind === 'admin' || kind === 'active';
+}

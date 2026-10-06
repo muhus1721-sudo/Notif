@@ -36,9 +36,12 @@
           "imageWidth": 160,
           "resizeMode": "contain",
           "backgroundColor": "#F5F7FB",
-          "dark": { "backgroundColor": "#0B1220" }
+          "dark": {
+            "backgroundColor": "#0B1220"
+          }
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true

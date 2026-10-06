@@ -7,8 +7,8 @@ Content is organised as **Subject → Lecture → Module**. Each module has a vi
 | Phase | What | Status |
 |---|---|---|
 | 1 | Project setup, database + security rules, sign up / sign in | ✅ done |
-| 2 | Subjects → lectures → modules (video, notes, quiz) | next |
-| 3 | Paywall, payment upload, admin approval | |
+| 2 | Subjects → lectures → modules (video, notes, quiz) | ✅ done |
+| 3 | Paywall, payment upload, admin approval | next |
 | 4 | Progress, streaks, home dashboard | |
 | 5 | Admin content management + JSON bulk import | |
 | 6 | Anti-sharing protections | |
@@ -137,6 +137,34 @@ Work through this list. Each line says what should happen.
 
 ---
 
+## Testing Phase 2
+
+**Quickest: demo mode** (the `-demo` APK, or `npx expo start` without `.env.local`)
+
+1. Sign in with any email. **Subjects** lists two sample subjects with progress rings at 0%.
+2. Open **Engineering Mechanics** → Lecture 1 shows **Free**; Lecture 2 shows a lock and is greyed out. Tapping it, or **Unlock for Rs 1000**, opens the "Payments are coming soon" screen (Phase 3 builds the real one).
+3. Open Lecture 1 → module 1.1 → three steps across the top: **Video · Notes · Quiz**.
+4. **Video:** a short sample clip plays, with fullscreen and no download or picture-in-picture. Watch it to the end and the Video step gets a ✓.
+5. **Notes:** formulas render as proper maths (fractions, square roots, subscripts). There's also a table and a highlighted tip. Opening the notes ticks the step.
+6. **Quiz:** answer wrong → red with a shake; answer right → green with a small bounce. Both show an explanation. The end screen shows your score. Retake → "Best so far" shows your earlier best.
+7. With all three steps done, "Module complete 🎉" appears with a **Next** button. Go back: the module, lecture and subject rings update.
+8. Sign out and sign in with an email starting with `admin` → every lecture is unlocked.
+9. Switch your phone to dark mode and repeat a couple of screens.
+
+> Demo progress lives in memory and resets when the app restarts.
+
+**Against your real Supabase project**
+
+1. Run `supabase/snippets/sample-content.sql` in the SQL Editor.
+2. As a normal student: Lecture 1 opens; Lecture 2 is locked. Also try opening a Lecture 2 module through a link — its notes and quiz don't load, because the database refuses them.
+3. Finish a module. In **Table Editor**, `module_progress` gets a row with `completed_at` set, `quiz_attempts` gets your score, and `activity_days` gets today's date.
+4. As admin: everything is open.
+5. Video: upload a small `.mp4` in **Storage → videos** into a folder named after the module id, then run the `update … video_path` line at the bottom of the snippet.
+
+**Module completion rule:** watch the video to 90%, open the notes, and attempt the quiz at least once. A module without a video or quiz skips that step.
+
+---
+
 ## How access works
 
 - **Free:** the first published lecture (lowest order number) of each subject.
@@ -170,7 +198,9 @@ civilaid/
 │   │   └── admin/           # admin-only screens
 │   ├── auth/AuthProvider.tsx
 │   ├── components/ui/       # Button, TextField, Card, AppText, …
-│   ├── lib/                 # supabase client, config, validation, types
+│   ├── components/notes/    # Markdown + formula (MathJax → SVG) renderer
+│   ├── components/content/  # quiz, video player, lock/unlock UI
+│   ├── lib/                 # supabase client, content queries, progress rules, demo data
 │   └── theme/               # colours (light/dark), Poppins type scale
 ├── supabase/
 │   ├── migrations/          # run in order in the SQL Editor

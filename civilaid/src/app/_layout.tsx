@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { StatusScreen } from '@/components/StatusScreen';
 import { AppText } from '@/components/ui';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
+import { fonts } from '@/theme/typography';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -76,12 +77,26 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   return (
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          headerStyle: { backgroundColor: colors.background },
+          headerShadowVisible: false,
+          headerTintColor: colors.text,
+          headerTitleStyle: { fontFamily: fonts.semibold, fontSize: 17 },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      >
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="subject/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="lecture/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="module/[id]" options={{ headerShown: true, title: '' }} />
+          <Stack.Screen name="unlock" options={{ headerShown: true, title: 'Unlock CivilAid', presentation: 'modal' }} />
           <Stack.Protected guard={isAdmin}>
             <Stack.Screen name="admin" />
           </Stack.Protected>
