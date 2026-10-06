@@ -7,7 +7,7 @@ name: Build APK
 on:
   push:
     branches: ['**']
-    paths-ignore: ['README.md', 'civilaid/**']
+    paths-ignore: ['README.md', 'civilaid/**', '.github/workflows/civilaid-apk.yml']
   workflow_dispatch:
 
 permissions:

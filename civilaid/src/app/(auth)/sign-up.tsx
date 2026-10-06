@@ -4,6 +4,7 @@ import { StyleSheet, View, type TextInput } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { BrandMark } from '@/components/BrandMark';
+import { DemoBanner } from '@/components/DemoBanner';
 import { AppText, Banner, Button, Card, Chip, Screen, TextField } from '@/components/ui';
 import { SECTIONS } from '@/lib/config';
 import { validateSignUp, type SignUpErrors, type SignUpInput } from '@/lib/validation';
@@ -64,6 +65,7 @@ export default function SignUpScreen() {
   return (
     <Screen keyboard>
       <BrandMark />
+      <DemoBanner />
       <Card style={styles.card}>
         <View style={styles.heading}>
           <AppText variant="title">Create your account</AppText>

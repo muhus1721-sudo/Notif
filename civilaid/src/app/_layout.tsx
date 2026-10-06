@@ -15,7 +15,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { StatusScreen } from '@/components/StatusScreen';
 import { AppText } from '@/components/ui';
-import { isSupabaseConfigured } from '@/lib/config';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync();
@@ -55,16 +54,6 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   }, [ready]);
 
   if (!ready) return null;
-
-  if (!isSupabaseConfigured) {
-    return (
-      <StatusScreen
-        icon="construct-outline"
-        title="Connect Supabase"
-        message="Create a .env.local file in the project folder with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY (see .env.example), then restart with: npx expo start --clear"
-      />
-    );
-  }
 
   if (signedIn && !profile) {
     return (

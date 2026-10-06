@@ -28,6 +28,23 @@ const PROFILE_SELECT =
   'id, email, full_name, cms_id, section, role, access_semester_id, created_at, ' +
   'access_semester:semesters (id, name, ends_at, is_current)';
 
+/** Demo mode (no Supabase keys built in): a local, fake account so the UI can be previewed. */
+function demoProfile(email: string, input?: SignUpInput): Profile {
+  const name = input?.fullName.trim() || email.split('@')[0].replace(/[._-]+/g, ' ') || 'Demo Student';
+  return {
+    id: 'demo-user',
+    email: email.trim(),
+    full_name: name.replace(/\b\w/g, (c) => c.toUpperCase()),
+    cms_id: input?.cmsId.trim() || '512345',
+    section: input?.section || 'A',
+    // Sign in with an email that starts with "admin" to preview the admin screens.
+    role: email.trim().toLowerCase().startsWith('admin') ? 'admin' : 'student',
+    access_semester_id: null,
+    created_at: new Date().toISOString(),
+    access_semester: null,
+  };
+}
+
 async function fetchProfile(userId: string) {
   const { data, error } = await supabase.from('profiles').select(PROFILE_SELECT).eq('id', userId).single();
   return error
@@ -42,7 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState<{ userId: string; profile: Profile | null; error: string | null } | null>(null);
   const userId = session?.user.id ?? null;
   const current = loaded && loaded.userId === userId ? loaded : null;
-  const profile = current?.profile ?? null;
+  const [demo, setDemo] = useState<Profile | null>(null);
+  const profile = isSupabaseConfigured ? (current?.profile ?? null) : demo;
   const profileError = current?.error ?? null;
 
   useEffect(() => {
@@ -71,11 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userId]);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    if (!isSupabaseConfigured) return setDemo(demoProfile(email));
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) throw new Error(friendlyAuthError(error));
   }, []);
 
   const signUp = useCallback(async (input: SignUpInput) => {
+    if (!isSupabaseConfigured) {
+      setDemo(demoProfile(input.email, input));
+      return 'signedIn' as const;
+    }
     const cmsId = input.cmsId.trim();
     const { data: available, error: checkError } = await supabase.rpc('cms_id_available', { p_cms_id: cmsId });
     if (checkError) throw new Error(friendlyAuthError(checkError));
@@ -97,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    if (!isSupabaseConfigured) return setDemo(null);
     const { error } = await supabase.auth.signOut();
     // If the server can't be reached, still clear the session on this device.
     if (error) await supabase.auth.signOut({ scope: 'local' });
@@ -108,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      status: !sessionLoaded ? 'loading' : session ? 'signedIn' : 'signedOut',
+      status: !sessionLoaded ? 'loading' : session || demo ? 'signedIn' : 'signedOut',
       session,
       profile,
       profileError,
@@ -118,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       refreshProfile,
     }),
-    [sessionLoaded, session, profile, profileError, signIn, signUp, signOut, refreshProfile],
+    [sessionLoaded, session, demo, profile, profileError, signIn, signUp, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,6 +4,7 @@ import { StyleSheet, View, type TextInput } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { BrandMark } from '@/components/BrandMark';
+import { DemoBanner } from '@/components/DemoBanner';
 import { AppText, Banner, Button, Card, Screen, TextField } from '@/components/ui';
 import { validateEmail } from '@/lib/validation';
 
@@ -34,6 +35,7 @@ export default function SignInScreen() {
   return (
     <Screen keyboard>
       <BrandMark />
+      <DemoBanner />
       <Card style={styles.card}>
         <View style={styles.heading}>
           <AppText variant="title">Welcome back</AppText>

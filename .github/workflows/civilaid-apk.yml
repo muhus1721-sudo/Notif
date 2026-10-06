@@ -1,0 +1,102 @@
+# Builds an installable CivilAid APK and attaches it to a GitHub Release, so it
+# can be installed straight from a phone browser.
+#
+# Runs on every push that changes civilaid/, or from the Actions tab ("Run workflow").
+#
+# Supabase connection: add two repository secrets (Settings → Secrets and variables →
+# Actions): EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY. Without them the
+# APK opens in demo mode with local sample data.
+name: Build CivilAid APK
+
+on:
+  push:
+    branches: ['**']
+    paths: ['civilaid/**', '.github/workflows/civilaid-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: civilaid
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: civilaid/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types, lint and run tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test
+
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: '1'
+
+      # Release build type, signed with the bundled debug keystore: fine for testing
+      # on your own phone. arm64-v8a only covers every Android phone from ~2015 on and
+      # keeps the APK small. Phase 7 replaces this with a proper EAS-signed build.
+      - name: Assemble release APK
+        working-directory: civilaid/android
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_KEY }}
+        run: |
+          if [ -n "$EXPO_PUBLIC_SUPABASE_URL" ]; then echo "Supabase: connected build"; else echo "Supabase: no secrets set, building in demo mode"; fi
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+
+      - name: Verify the packaged APK
+        working-directory: civilaid/android/app/build/outputs/apk/release
+        run: |
+          set -uo pipefail
+          fail() { echo "VERIFY FAILED: $1"; exit 1; }
+          unzip -l app-release.apk | grep -q 'lib/arm64-v8a/libreactnative.so' || fail "arm64 engine missing"
+          unzip -l app-release.apk | grep -q 'assets/index.android.bundle' || fail "JS bundle missing"
+          ls -lh app-release.apk
+
+      - name: Name the APK after the run
+        id: apk
+        run: |
+          mkdir -p dist
+          mode=$([ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ] && echo "" || echo "-demo")
+          path="dist/CivilAid-${{ github.run_number }}${mode}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$path"
+          echo "path=civilaid/$path" >> "$GITHUB_OUTPUT"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: civilaid-apk
+          path: ${{ steps.apk.outputs.path }}
+
+      - name: Publish the APK as a release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "civilaid-${{ github.run_number }}" \
+            "${{ steps.apk.outputs.path }}" \
+            --target "${{ github.sha }}" \
+            --title "CivilAid - build ${{ github.run_number }}${{ steps.apk.outputs.mode }}" \
+            --notes "Tap the .apk below on an Android phone to install. Android will ask you to allow installing from your browser; that is expected for an app that does not come from the Play Store. A build ending in -demo has no Supabase keys and runs on sample data. Built from ${{ github.sha }} on ${{ github.ref_name }}." \
+            --latest=false

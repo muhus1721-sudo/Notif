@@ -84,6 +84,26 @@ Blocks 2 and 3 of that file (semester dates, JazzCash/Easypaisa number) are need
 
 ---
 
+## Getting an APK onto your phone
+
+Every push that changes `civilaid/` builds an APK on GitHub Actions in about 15 minutes.
+
+1. On GitHub, open the repo → **Releases**, and find the newest **CivilAid - build N**.
+2. Open it on your Android phone and tap the `.apk` file. Allow "install unknown apps" for your browser when Android asks.
+
+To start a build without pushing, go to **Actions → Build CivilAid APK → Run workflow**.
+
+**Demo mode vs connected:** an APK built without Supabase keys ends in `-demo`. It runs on fake local data: any email and password signs in, and an email starting with `admin` shows the admin panel. To build one that talks to your real Supabase project, add two secrets under **repo Settings → Secrets and variables → Actions → New repository secret**:
+
+- `EXPO_PUBLIC_SUPABASE_URL`: your Project URL
+- `EXPO_PUBLIC_SUPABASE_KEY`: your publishable key
+
+Then run the workflow again.
+
+> These test APKs are signed with a shared debug key. They're fine for your own phone, but don't hand them to students; Phase 7 sets up proper signed builds.
+
+---
+
 ## Testing Phase 1
 
 Work through this list. Each line says what should happen.
@@ -175,7 +195,7 @@ npm run typecheck && npm run lint && npm test
 
 | Problem | Fix |
 |---|---|
-| App shows "Connect Supabase" | `.env.local` is missing or misspelled. Fix it, then run `npx expo start --clear`. |
+| Sign-in screen says "Demo mode" | `.env.local` is missing or misspelled (or, for the APK, the GitHub secrets aren't set). Fix it, then run `npx expo start --clear`. |
 | "Couldn't load your account" after sign-in | The profile row is missing. Most likely the migrations weren't run before that account was created. Delete the user in **Authentication → Users** and sign up again. |
 | "Database error saving new user" | That CMS ID is already registered to another account. |
 | Phone can't connect to the dev server | Make sure phone and laptop are on the same Wi-Fi, or run `npx expo start --tunnel`. |
