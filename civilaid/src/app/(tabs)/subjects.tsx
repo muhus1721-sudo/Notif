@@ -12,6 +12,7 @@ import { getMyProgress, listSubjects, type SubjectWithLectures } from '@/lib/con
 import { subjectCompletion } from '@/lib/progress';
 import { useLoader } from '@/lib/useLoader';
 import { radius, useTheme } from '@/theme/ThemeProvider';
+import { fonts } from '@/theme/typography';
 
 export default function SubjectsScreen() {
   const load = useCallback(async () => {
@@ -76,7 +77,7 @@ function SubjectCard({ subject, ratio }: { subject: SubjectWithLectures; ratio: 
             </AppText>
           </View>
           <ProgressRing progress={ratio} color={accent}>
-            <AppText variant="caption" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+            <AppText variant="caption" style={{ fontFamily: fonts.semibold }}>
               {Math.round(ratio * 100)}%
             </AppText>
           </ProgressRing>

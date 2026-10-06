@@ -23,7 +23,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textFaint,
-        // Poppins is taller than the system font, so the default bar clips its labels.
+        // Custom fonts sit taller than the system font, so the default bar clips its labels.
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,

@@ -1,18 +1,20 @@
 import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
+  Sora_400Regular,
+  Sora_500Medium,
+  Sora_600SemiBold,
+  Sora_700Bold,
+  Sora_800ExtraBold,
   useFonts,
-} from '@expo-google-fonts/poppins';
+} from '@expo-google-fonts/sora';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { StatusScreen } from '@/components/StatusScreen';
 import { AppText } from '@/components/ui';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
@@ -22,37 +24,55 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
+    Sora_400Regular,
+    Sora_500Medium,
+    Sora_600SemiBold,
+    Sora_700Bold,
+    Sora_800ExtraBold,
   });
+  const fontsReady = fontsLoaded || !!fontError;
+  const [splashDone, setSplashDone] = useState(false);
+  const finishSplash = useCallback(() => setSplashDone(true), []);
+
+  // The native splash stays up only until fonts load; then the animated splash takes over.
+  useEffect(() => {
+    if (fontsReady) SplashScreen.hideAsync();
+  }, [fontsReady]);
 
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <RootNavigator fontsReady={fontsLoaded || !!fontError} />
+          {fontsReady ? <RootNavigator /> : null}
+          {fontsReady && !splashDone ? <SplashGate onDone={finishSplash} /> : null}
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
 }
 
-function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
+/** Session and profile loaded, so the first real screen can be shown. */
+function useAppReady() {
+  const { status, profile, profileError } = useAuth();
+  const signedIn = status === 'signedIn';
+  // Wait for the profile too, so admins never flash the student UI or vice versa.
+  return status !== 'loading' && (!signedIn || !!profile || !!profileError);
+}
+
+/** Plays the launch animation over the app while the session loads (once per launch). */
+function SplashGate({ onDone }: { onDone: () => void }) {
+  return <AnimatedSplash ready={useAppReady()} onDone={onDone} />;
+}
+
+function RootNavigator() {
   const { colors, scheme } = useTheme();
   const { status, profile, profileError, isAdmin, refreshProfile, signOut } = useAuth();
   const signedIn = status === 'signedIn';
-  // Wait for the profile too, so admins never flash the student UI or vice versa.
-  const ready = fontsReady && status !== 'loading' && (!signedIn || !!profile || !!profileError);
+  const ready = useAppReady();
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
   }, [colors.background]);
-
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
 
   if (!ready) return null;
 
@@ -83,7 +103,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           contentStyle: { backgroundColor: colors.background },
           headerStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
-          headerTintColor: colors.text,
+          headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontFamily: fonts.semibold, fontSize: 17 },
           headerBackButtonDisplayMode: 'minimal',
         }}

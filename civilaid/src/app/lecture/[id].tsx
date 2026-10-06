@@ -77,11 +77,11 @@ function ModuleRow({ module, number, locked, done }: { module: ModuleMeta; numbe
     >
       {({ pressed }) => (
         <Card style={[styles.row, pressed && { opacity: 0.85 }, locked && { opacity: 0.55 }]}>
-          <View style={[styles.number, { backgroundColor: done ? colors.success : colors.surfaceMuted }]}>
+          <View style={[styles.number, { backgroundColor: done ? colors.success : colors.surfaceAlt }]}>
             {done ? (
               <Ionicons name="checkmark" size={18} color={colors.onPrimary} />
             ) : locked ? (
-              <Ionicons name="lock-closed" size={14} color={colors.textMuted} />
+              <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
             ) : (
               <AppText variant="label" tone="muted">
                 {number}

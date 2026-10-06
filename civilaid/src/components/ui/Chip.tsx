@@ -15,12 +15,12 @@ export function Chip({ label, selected, onPress }: Props) {
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? colors.primaryFill : colors.surface,
-          borderColor: selected ? colors.primaryFill : colors.border,
+          backgroundColor: selected ? colors.primary : colors.surface,
+          borderColor: selected ? colors.primary : colors.border,
         },
       ]}
     >
-      <AppText variant="bodyStrong" style={{ color: selected ? colors.onPrimary : colors.text }}>
+      <AppText variant="bodyStrong" style={{ color: selected ? colors.onPrimary : colors.textPrimary }}>
         {label}
       </AppText>
     </Pressable>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor">
+  <!-- triangle frame -->
+  <path d="M60 18 L18 96 L102 96 Z" stroke-width="9" stroke-linejoin="round"/>
+  <!-- crossbar -->
+  <path d="M34 66 L86 66" stroke-width="8" stroke-linecap="round"/>
+  <!-- web (V) -->
+  <path d="M34 66 L60 96 L86 66" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- base beam -->
+  <path d="M6 96 L114 96" stroke-width="9" stroke-linecap="round"/>
+</svg>

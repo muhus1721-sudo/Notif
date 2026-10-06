@@ -2,6 +2,8 @@
 
 Paid LMS for one university batch. Expo SDK 57 + Expo Router (routes in `src/app/`), TypeScript, Supabase.
 Read `README.md` for the feature list, phases and access rules before changing anything.
+The owner's spec is `docs/CivilAid-spec.pdf`: follow Sections 2–5 (logo, colour tokens, Sora type scale,
+icon, animated splash) exactly.
 
 ## Rules for this project
 

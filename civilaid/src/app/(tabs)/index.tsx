@@ -17,7 +17,7 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <Logo height={30} tagline={false} />
+      <Logo size={30} tagline={false} />
       <View style={styles.header}>
         <AppText tone="muted">{greeting(new Date().getHours())},</AppText>
         <AppText variant="display">{firstName} 👋</AppText>

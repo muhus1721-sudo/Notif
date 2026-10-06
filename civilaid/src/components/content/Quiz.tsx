@@ -119,7 +119,7 @@ function QuestionHeader({ index, total }: { index: number; total: number }) {
       <AppText variant="label" tone="muted">
         Question {index + 1} of {total}
       </AppText>
-      <View style={[styles.track, { backgroundColor: colors.surfaceMuted }]}>
+      <View style={[styles.track, { backgroundColor: colors.surfaceAlt }]}>
         <View style={[styles.fill, { backgroundColor: colors.primary, width: `${((index + 1) / total) * 100}%` }]} />
       </View>
     </View>
@@ -147,10 +147,10 @@ function Option({ label, letter, state, onPress }: { label: string; letter: stri
   }, [state, scale, shake]);
 
   const look = {
-    idle: { bg: colors.surface, border: colors.border, fg: colors.text, badge: colors.surfaceMuted },
-    correct: { bg: colors.successSoft, border: colors.success, fg: colors.text, badge: colors.success },
-    wrong: { bg: colors.dangerSoft, border: colors.danger, fg: colors.text, badge: colors.danger },
-    dim: { bg: colors.surface, border: colors.border, fg: colors.textFaint, badge: colors.surfaceMuted },
+    idle: { bg: colors.surface, border: colors.border, fg: colors.textPrimary, badge: colors.surfaceAlt },
+    correct: { bg: colors.successSoft, border: colors.success, fg: colors.textPrimary, badge: colors.success },
+    wrong: { bg: colors.errorSoft, border: colors.error, fg: colors.textPrimary, badge: colors.error },
+    dim: { bg: colors.surface, border: colors.border, fg: colors.textFaint, badge: colors.surfaceAlt },
   }[state];
 
   return (
@@ -163,7 +163,7 @@ function Option({ label, letter, state, onPress }: { label: string; letter: stri
         style={({ pressed }) => [
           styles.option,
           state === 'idle' && shadow,
-          { backgroundColor: pressed ? colors.surfaceMuted : look.bg, borderColor: look.border, opacity: state === 'dim' ? 0.7 : 1 },
+          { backgroundColor: pressed ? colors.surfaceAlt : look.bg, borderColor: look.border, opacity: state === 'dim' ? 0.7 : 1 },
         ]}
       >
         <View style={[styles.badge, { backgroundColor: look.badge }]}>
@@ -193,7 +193,7 @@ function Feedback({ correct, explanation }: { correct: boolean; explanation: str
     <Animated.View
       style={{ opacity: appear, transform: [{ translateY: appear.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}
     >
-      <Card style={[styles.gapSmall, { borderLeftWidth: 4, borderLeftColor: correct ? colors.success : colors.danger }]}>
+      <Card style={[styles.gapSmall, { borderLeftWidth: 4, borderLeftColor: correct ? colors.success : colors.error }]}>
         <AppText variant="heading" tone={correct ? 'success' : 'danger'}>
           {correct ? 'Correct! 🎉' : 'Not quite'}
         </AppText>

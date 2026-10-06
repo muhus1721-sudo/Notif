@@ -36,14 +36,14 @@ const childTokens = (t: Any) => (t.tokens as MdToken[] | undefined) ?? [];
 function Block({ token, textStyle }: { token: MdToken; textStyle?: TextStyle }) {
   const { colors } = useTheme();
   const t = token as Any;
-  const base: TextStyle = { ...textVariants.body, color: colors.text, ...textStyle };
+  const base: TextStyle = { ...textVariants.body, color: colors.textPrimary, ...textStyle };
 
   switch (token.type) {
     case 'heading': {
       const depth = t.depth as number;
       const variant = depth <= 1 ? textVariants.title : depth === 2 ? textVariants.heading : textVariants.bodyStrong;
       return (
-        <Text style={[variant, { color: colors.text, marginTop: depth <= 2 ? 6 : 2 }]} accessibilityRole="header">
+        <Text style={[variant, { color: colors.textPrimary, marginTop: depth <= 2 ? 6 : 2 }]} accessibilityRole="header">
           <Inline tokens={childTokens(t)} fontSize={variant.fontSize} />
         </Text>
       );
@@ -81,8 +81,8 @@ function Block({ token, textStyle }: { token: MdToken; textStyle?: TextStyle }) 
       );
     case 'code':
       return (
-        <ScrollView horizontal style={[styles.codeBlock, { backgroundColor: colors.surfaceMuted }]}>
-          <Text style={[styles.code, { color: colors.text }]}>{t.text as string}</Text>
+        <ScrollView horizontal style={[styles.codeBlock, { backgroundColor: colors.surfaceAlt }]}>
+          <Text style={[styles.code, { color: colors.textPrimary }]}>{t.text as string}</Text>
         </ScrollView>
       );
     case 'table':
@@ -157,7 +157,7 @@ function Inline({ tokens, fontSize = 15 }: { tokens: MdToken[]; fontSize?: numbe
             );
           case 'codespan':
             return (
-              <Text key={i} style={[styles.codespan, { backgroundColor: colors.surfaceMuted }]}>
+              <Text key={i} style={[styles.codespan, { backgroundColor: colors.surfaceAlt }]}>
                 {decodeEntities(t.text as string)}
               </Text>
             );
@@ -199,7 +199,7 @@ function Table({ token, base }: { token: Any; base: TextStyle }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View style={[styles.table, { borderColor: colors.border }]}>
-        <View style={[styles.row, { backgroundColor: colors.surfaceMuted }]}>{header.map((c, i) => cell(c, i, true))}</View>
+        <View style={[styles.row, { backgroundColor: colors.surfaceAlt }]}>{header.map((c, i) => cell(c, i, true))}</View>
         {rows.map((r, i) => (
           <View key={i} style={styles.row}>
             {r.map((c, j) => cell(c, j, false))}
@@ -222,7 +222,7 @@ function NoteImage({ uri, alt }: { uri: string; alt: string }) {
         const { width, height } = e.nativeEvent.source;
         if (width && height) setRatio(width / height);
       }}
-      style={[styles.image, { aspectRatio: ratio, backgroundColor: colors.surfaceMuted }]}
+      style={[styles.image, { aspectRatio: ratio, backgroundColor: colors.surfaceAlt }]}
     />
   );
 }

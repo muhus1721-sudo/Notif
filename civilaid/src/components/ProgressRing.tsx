@@ -20,7 +20,7 @@ export function ProgressRing({ progress, size = 52, stroke = 5, color, children 
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceMuted} strokeWidth={stroke} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={stroke} fill="none" />
         {clamped > 0 ? (
           <Circle
             cx={size / 2}

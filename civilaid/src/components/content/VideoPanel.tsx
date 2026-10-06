@@ -30,7 +30,7 @@ export function VideoPanel({ path, onWatched }: Props) {
   if (current?.error) return <Banner message={`Couldn’t load the video: ${current.error}`} />;
   if (!current?.url) {
     return (
-      <View style={[styles.frame, styles.center, { backgroundColor: colors.surfaceMuted }]}>
+      <View style={[styles.frame, styles.center, { backgroundColor: colors.surfaceAlt }]}>
         <ActivityIndicator color={colors.primary} />
       </View>
     );

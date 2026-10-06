@@ -13,10 +13,10 @@ type Props = Omit<PressableProps, 'children'> & {
 export function Button({ title, variant = 'primary', loading, disabled, icon, style, ...rest }: Props) {
   const { colors } = useTheme();
   const palette = {
-    primary: { bg: colors.primaryFill, pressed: colors.primaryPressed, fg: colors.onPrimary },
+    primary: { bg: colors.primary, pressed: colors.primaryPressed, fg: colors.onPrimary },
     secondary: { bg: colors.primarySoft, pressed: colors.border, fg: colors.primary },
-    ghost: { bg: 'transparent', pressed: colors.surfaceMuted, fg: colors.primary },
-    danger: { bg: colors.dangerSoft, pressed: colors.border, fg: colors.danger },
+    ghost: { bg: 'transparent', pressed: colors.surfaceAlt, fg: colors.primary },
+    danger: { bg: colors.errorSoft, pressed: colors.border, fg: colors.error },
   }[variant];
   const inactive = disabled || loading;
 
@@ -37,7 +37,7 @@ export function Button({ title, variant = 'primary', loading, disabled, icon, st
       ) : (
         <View style={styles.row}>
           {icon}
-          <AppText variant="bodyStrong" style={{ color: palette.fg }}>
+          <AppText variant="button" style={{ color: palette.fg }}>
             {title}
           </AppText>
         </View>

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
-import { AppText, Button, Card, Screen } from '@/components/ui';
+import { AppText, Button, Card, Screen, Segmented } from '@/components/ui';
 import { formatDate, getAccessStatus, type AccessStatus } from '@/lib/access';
-import { radius, useTheme } from '@/theme/ThemeProvider';
+import { radius, useTheme, type ThemePreference } from '@/theme/ThemeProvider';
 
 function statusLook(status: AccessStatus) {
   switch (status.kind) {
@@ -22,7 +22,7 @@ function statusLook(status: AccessStatus) {
 }
 
 export default function ProfileScreen() {
-  const { colors } = useTheme();
+  const { colors, preference, setPreference } = useTheme();
   const { profile, isAdmin, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
   if (!profile) return null;
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
   const pill = {
     primary: { bg: colors.primarySoft, fg: colors.primary },
     success: { bg: colors.successSoft, fg: colors.success },
-    danger: { bg: colors.dangerSoft, fg: colors.danger },
+    danger: { bg: colors.errorSoft, fg: colors.error },
     warning: { bg: colors.warningSoft, fg: colors.warning },
   }[look.tone];
   const initials = profile.full_name
@@ -45,7 +45,7 @@ export default function ProfileScreen() {
       <AppText variant="title">Profile</AppText>
 
       <Card style={styles.identity}>
-        <View style={[styles.avatar, { backgroundColor: colors.primaryFill }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
           <AppText variant="title" tone="onPrimary">
             {initials}
           </AppText>
@@ -74,6 +74,20 @@ export default function ProfileScreen() {
         </AppText>
       </Card>
 
+      <Card style={styles.rows}>
+        <AppText variant="bodyStrong">Appearance</AppText>
+        <Segmented<ThemePreference>
+          label="Theme"
+          value={preference}
+          onChange={setPreference}
+          options={[
+            { value: 'system', label: 'System' },
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+          ]}
+        />
+      </Card>
+
       {isAdmin ? (
         <Button
           title="Open admin panel"
@@ -87,7 +101,7 @@ export default function ProfileScreen() {
         title="Log out"
         variant="danger"
         loading={signingOut}
-        icon={<Ionicons name="log-out-outline" size={18} color={colors.danger} />}
+        icon={<Ionicons name="log-out-outline" size={18} color={colors.error} />}
         onPress={async () => {
           setSigningOut(true);
           await signOut();

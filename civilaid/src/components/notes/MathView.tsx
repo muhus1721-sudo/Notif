@@ -13,7 +13,7 @@ type Props = { tex: string; display?: boolean; fontSize?: number; color?: string
 /** A TeX formula drawn as SVG. Inline formulas sit on the text baseline. */
 export const MathView = memo(function MathView({ tex, display = false, fontSize = 15, color }: Props) {
   const { colors } = useTheme();
-  const fill = color ?? colors.text;
+  const fill = color ?? colors.textPrimary;
   const svg = useMemo(() => {
     try {
       return texToSvg(tex, display);
@@ -24,7 +24,7 @@ export const MathView = memo(function MathView({ tex, display = false, fontSize 
 
   if (!svg) {
     return (
-      <Text style={[styles.fallback, { color: colors.danger }]} accessibilityLabel={`Formula: ${tex}`}>
+      <Text style={[styles.fallback, { color: colors.error }]} accessibilityLabel={`Formula: ${tex}`}>
         {tex}
       </Text>
     );

@@ -1,65 +1,79 @@
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { APP_NAME } from '@/lib/config';
 import { useTheme } from '@/theme/ThemeProvider';
-import {
-  ICON_PATH,
-  ICON_VIEWBOX,
-  WORDMARK_BLUE,
-  WORDMARK_CIVIL,
-  WORDMARK_TAGLINE,
-  WORDMARK_VIEWBOX,
-} from './logoPaths';
+import { fonts } from '@/theme/typography';
+import { MARK_ORDER, MARK_PATHS, MARK_VIEWBOX } from './mark';
 
-// Colours sampled from the CivilAid logo artwork (light and dark versions).
-export const LOGO_COLORS = {
-  light: { blue: '#1E5EFE', civil: '#0C2A70', tagline: '#394E79' },
-  // The artwork's dark tagline (#19264A) is nearly invisible on navy; lifted slightly so it reads.
-  dark: { blue: '#4C82FF', civil: '#FFFFFF', tagline: '#5D6E99' },
-};
+/** The truss mark. Minimum size 24 (spec). */
+export function LogoMark({ size = 32, color }: { size?: number; color?: string }) {
+  const { colors } = useTheme();
+  return (
+    <Svg width={size} height={size} viewBox={MARK_VIEWBOX} fill="none" accessibilityLabel={APP_NAME}>
+      {MARK_ORDER.map((k) => (
+        <Path
+          key={k}
+          d={MARK_PATHS[k].d}
+          stroke={color ?? colors.brandBlue}
+          strokeWidth={MARK_PATHS[k].strokeWidth}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      ))}
+    </Svg>
+  );
+}
 
-const [, , WORD_W, WORD_H] = WORDMARK_VIEWBOX.split(' ').map(Number);
-const [, , ICON_W, ICON_H] = ICON_VIEWBOX.split(' ').map(Number);
+// Lockup proportions from the spec, relative to a 140 px mark: wordmark 84 px Sora 800 with
+// -2.5 letter spacing, 18–28 px gap, tagline 18 px Sora 600 uppercase, 4 px tracking, 6 px below.
+export const LOCKUP = { gap: 22 / 140, word: 84 / 140, wordTracking: -2.5 / 84, tag: 18 / 140, tagTracking: 4 / 18, tagGap: 6 / 140 };
 
 type Props = {
-  /** Rendered height in points; width follows the artwork's proportions. */
-  height?: number;
+  /** Mark size; everything else scales from it. */
+  size?: number;
   tagline?: boolean;
-  /** Force a version, e.g. white-on-blue surfaces; defaults to the current theme. */
-  scheme?: 'light' | 'dark';
+  /** For brand-blue surfaces: everything in white. */
+  reversed?: boolean;
 };
 
-/** "CivilAid" wordmark with the truss mark, in the light or dark colourway. */
-export function Logo({ height = 48, tagline = true, scheme }: Props) {
-  const theme = useTheme();
-  const c = LOGO_COLORS[scheme ?? theme.scheme];
+/** Horizontal lockup: mark + "CivilAid" (+ tagline), in the current theme's colourway. */
+export function Logo({ size = 56, tagline = true, reversed }: Props) {
+  const { colors } = useTheme();
+  const word = size * LOCKUP.word;
+  const tag = size * LOCKUP.tag;
+  const blue = reversed ? colors.onPrimary : colors.brandBlue;
   return (
-    <Svg
-      width={(height * WORD_W) / WORD_H}
-      height={height}
-      viewBox={WORDMARK_VIEWBOX}
+    <View
+      style={[styles.row, { gap: size * LOCKUP.gap }]}
+      accessible
       accessibilityRole="image"
-      accessibilityLabel={`${APP_NAME} — Learn. Practice. Build.`}
+      accessibilityLabel={`${APP_NAME}. Learn. Practice. Build.`}
     >
-      <Path d={WORDMARK_BLUE} fill={c.blue} fillRule="evenodd" />
-      <Path d={WORDMARK_CIVIL} fill={c.civil} fillRule="evenodd" />
-      {tagline ? <Path d={WORDMARK_TAGLINE} fill={c.tagline} fillRule="evenodd" /> : null}
-    </Svg>
+      <LogoMark size={size} color={blue} />
+      <View>
+        <Text
+          style={{ fontFamily: fonts.extrabold, fontSize: word, lineHeight: word * 1.15, letterSpacing: word * LOCKUP.wordTracking }}
+        >
+          <Text style={{ color: reversed ? colors.onPrimary : colors.brandCivil }}>Civil</Text>
+          <Text style={{ color: blue }}>Aid</Text>
+        </Text>
+        {tagline ? (
+          <Text
+            style={{
+              fontFamily: fonts.semibold,
+              fontSize: tag,
+              letterSpacing: tag * LOCKUP.tagTracking,
+              marginTop: size * LOCKUP.tagGap,
+              color: reversed ? colors.onPrimary : colors.textSecondary,
+            }}
+          >
+            LEARN. PRACTICE. BUILD.
+          </Text>
+        ) : null}
+      </View>
+    </View>
   );
 }
 
-/** The truss mark on its own. */
-export function LogoMark({ size = 32, color }: { size?: number; color?: string }) {
-  const theme = useTheme();
-  return (
-    <Svg
-      width={(size * ICON_W) / ICON_H}
-      height={size}
-      viewBox={ICON_VIEWBOX}
-      accessibilityRole="image"
-      accessibilityLabel={APP_NAME}
-    >
-      <Path d={ICON_PATH} fill={color ?? LOGO_COLORS[theme.scheme].blue} fillRule="evenodd" />
-    </Svg>
-  );
-}
+const styles = StyleSheet.create({ row: { flexDirection: 'row', alignItems: 'center' } });

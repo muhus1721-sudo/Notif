@@ -8,7 +8,7 @@ import { Logo } from './brand/Logo';
 export function BrandMark() {
   return (
     <View style={styles.wrap}>
-      <Logo height={64} />
+      <Logo size={60} />
       <AppText variant="label" tone="muted">
         {BATCH_LABEL}
       </AppText>

@@ -12,12 +12,12 @@ type Props = TextProps & {
 export function AppText({ variant = 'body', tone = 'default', align, style, ...rest }: Props) {
   const { colors } = useTheme();
   const color = {
-    default: colors.text,
-    muted: colors.textMuted,
+    default: colors.textPrimary,
+    muted: colors.textSecondary,
     faint: colors.textFaint,
     primary: colors.primary,
     success: colors.success,
-    danger: colors.danger,
+    danger: colors.error,
     onPrimary: colors.onPrimary,
   }[tone];
   return <Text style={[textVariants[variant], { color, textAlign: align }, style]} {...rest} />;

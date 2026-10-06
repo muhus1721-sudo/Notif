@@ -21,7 +21,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
-  const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
+  const borderColor = error ? colors.error : focused ? colors.primary : colors.border;
 
   return (
     <View style={styles.wrap}>
@@ -41,7 +41,7 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
             setFocused(false);
             onBlur?.(e);
           }}
-          style={[styles.input, { color: colors.text }, style]}
+          style={[styles.input, { color: colors.textPrimary }, style]}
           {...rest}
         />
         {secure ? (

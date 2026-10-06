@@ -4,15 +4,18 @@ A paid learning app for **Civil Engineering · NUST · BECE 2K25**. It's built w
 
 Content is organised as **Subject → Lecture → Module**. Each module has a video, notes and a quiz. Lecture 1 of every subject is free. Everything else unlocks for Rs 1000 per semester.
 
+Built to `docs/CivilAid-spec.pdf` — Section 1 is the brief; Sections 2–5 are the exact brand, theme, icon and splash specs.
+
 | Phase | What | Status |
 |---|---|---|
-| 1 | Project setup, database + security rules, sign up / sign in | ✅ done |
-| 2 | Subjects → lectures → modules (video, notes, quiz) | ✅ done |
-| 3 | Paywall, payment upload, admin approval | next |
-| 4 | Progress, streaks, home dashboard | |
-| 5 | Admin content management + JSON bulk import | |
-| 6 | Anti-sharing protections | |
-| 7 | EAS Build → APK | |
+| 1 | Project setup, theme tokens, fonts, Supabase schema + RLS, auth | ✅ done |
+| 2 | Animated splash + app icon | ✅ done |
+| 3 | Student content flow (subjects → lectures → modules) | ✅ done |
+| 4 | Paywall + payment upload + admin approval | next |
+| 5 | Progress, streaks, home dashboard | |
+| 6 | Admin content management + JSON bulk import | |
+| 7 | Anti-sharing protections | |
+| 8 | EAS Build config + APK instructions | |
 
 ---
 
@@ -137,7 +140,25 @@ Work through this list. Each line says what should happen.
 
 ---
 
-## Testing Phase 2
+## Testing the splash, icon and themes (phase 2)
+
+1. **App icon:** after installing the APK, the launcher shows a white truss on brand blue. On Android 13+ with themed icons switched on, it takes your wallpaper's colours.
+2. **Splash:** open the app from cold (swipe it out of recent apps first). It plays the six-second sequence:
+   - the truss draws itself, stroke by stroke, and does a small bounce
+   - "CivilAid" flies out of the mark letter by letter, the tagline fades in, then everything is pulled back into the mark
+   - the mark glides to the centre, blue floods the screen, and it cross-fades into Login (or Home if you're signed in)
+3. **Skip:** tap anywhere during the splash → it jumps straight to the blue flood.
+4. **Reduce Motion:** turn on Settings → Accessibility → Remove animations (the name varies by phone), then reopen the app. You get the static logo for about half a second, then the app.
+5. **Dark mode:** with the phone in dark mode, the splash and app use navy `#0A1330`, white "Civil" and lighter blue `#4C82FF`.
+6. **Theme switch:** Profile → Appearance → **Light** / **Dark** / **System**. The app switches straight away and remembers your choice after a restart.
+
+> The native splash shown for the first instant (before fonts load) follows the phone's setting, not the in-app switch; Android shows it before any app code runs.
+
+Icons and splash images come from `assets/brand/civilaid-mark.svg`. After editing it, run `npm run brand-assets`.
+
+---
+
+## Testing the student content flow (phase 3)
 
 **Quickest: demo mode** (the `-demo` APK, or `npx expo start` without `.env.local`)
 
@@ -201,7 +222,8 @@ civilaid/
 │   ├── components/notes/    # Markdown + formula (MathJax → SVG) renderer
 │   ├── components/content/  # quiz, video player, lock/unlock UI
 │   ├── lib/                 # supabase client, content queries, progress rules, demo data
-│   └── theme/               # colours (light/dark), Poppins type scale
+│   ├── components/brand/    # logo, animated splash + its timeline
+│   └── theme/               # spec colour tokens (light/dark), Sora type scale, theme switch
 ├── supabase/
 │   ├── migrations/          # run in order in the SQL Editor
 │   └── snippets/            # one-off SQL you edit and run by hand
@@ -211,7 +233,7 @@ civilaid/
 Settings you might change:
 
 - `src/lib/config.ts`: app name, batch label, and the **sections** shown on sign-up (currently A–D).
-- `src/theme/colors.ts`: brand colours (from the logo: blue `#1E5EFE`, navy `#0A1330`).
+- `src/theme/colors.ts`: the spec's light/dark colour tokens.
 
 Checks to run before committing:
 

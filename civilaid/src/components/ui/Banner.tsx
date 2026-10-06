@@ -9,7 +9,7 @@ type Props = { tone?: 'error' | 'info' | 'success'; message: string };
 export function Banner({ tone = 'error', message }: Props) {
   const { colors } = useTheme();
   const look = {
-    error: { bg: colors.dangerSoft, fg: colors.danger, icon: 'alert-circle' as const },
+    error: { bg: colors.errorSoft, fg: colors.error, icon: 'alert-circle' as const },
     info: { bg: colors.primarySoft, fg: colors.primary, icon: 'information-circle' as const },
     success: { bg: colors.successSoft, fg: colors.success, icon: 'checkmark-circle' as const },
   }[tone];

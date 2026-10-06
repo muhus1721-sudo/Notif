@@ -4,10 +4,10 @@
     "slug": "civilaid",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/brand/icon.png",
     "scheme": "civilaid",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#F5F7FB",
+    "backgroundColor": "#FFFFFF",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.civilaid.app"
@@ -15,16 +15,15 @@
     "android": {
       "package": "com.civilaid.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/brand/icon-foreground.png",
+        "monochromeImage": "./assets/brand/icon-monochrome.png",
+        "backgroundColor": "#1E5EFF"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/brand/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -32,12 +31,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-icon.png",
+          "image": "./assets/brand/splash-mark.png",
           "imageWidth": 140,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF",
           "dark": {
-            "image": "./assets/splash-icon-dark.png",
+            "image": "./assets/brand/splash-mark-dark.png",
             "backgroundColor": "#0A1330"
           }
         }

@@ -100,13 +100,13 @@ function LectureRow({ lecture, number, free, locked, completion }: RowProps) {
           <View
             style={[
               styles.number,
-              { backgroundColor: complete ? colors.success : locked ? colors.surfaceMuted : colors.primarySoft },
+              { backgroundColor: complete ? colors.success : locked ? colors.surfaceAlt : colors.primarySoft },
             ]}
           >
             {complete ? (
               <Ionicons name="checkmark" size={20} color={colors.onPrimary} />
             ) : locked ? (
-              <Ionicons name="lock-closed" size={16} color={colors.textMuted} />
+              <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
             ) : (
               <AppText variant="bodyStrong" tone="primary">
                 {number}

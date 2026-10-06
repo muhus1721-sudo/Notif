@@ -1,70 +1,76 @@
+// Colour tokens from the CivilAid spec (Section 3). Components read colours only from here.
+// Spec tokens first; the *Soft / textFaint / flame / shadow extras are derived tints for
+// badges, placeholders and shadows that the spec doesn't list.
 export type Palette = {
   background: string;
   surface: string;
-  surfaceMuted: string;
-  border: string;
-  text: string;
-  textMuted: string;
-  textFaint: string;
+  surfaceAlt: string;
   primary: string;
   primaryPressed: string;
-  /** Background of filled buttons/badges that carry white text (meets 4.5:1 contrast). */
-  primaryFill: string;
-  primarySoft: string;
   onPrimary: string;
+  textPrimary: string;
+  textSecondary: string;
+  border: string;
   success: string;
-  successSoft: string;
-  danger: string;
-  dangerSoft: string;
+  error: string;
   warning: string;
+
+  textFaint: string;
+  primarySoft: string;
+  successSoft: string;
+  errorSoft: string;
   warningSoft: string;
-  flame: string;
+  /** Mark + "Aid" in the logo. */
+  brandBlue: string;
+  /** "Civil" in the logo. */
+  brandCivil: string;
   shadow: string;
 };
 
-// Brand colours come from the CivilAid logo: blue #1E5EFE (light) / #4C82FF (dark), navy #0A1330.
 export const light: Palette = {
-  background: '#F5F7FB',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceMuted: '#EEF2F8',
-  border: '#E2E8F0',
-  text: '#0F172A',
-  textMuted: '#475569',
-  textFaint: '#94A3B8',
-  primary: '#1E5EFE',
-  primaryPressed: '#1A4FD6',
-  primaryFill: '#1E5EFE',
-  primarySoft: '#E0E9FF',
+  surfaceAlt: '#EEF3FF',
+  primary: '#1E5EFF',
+  primaryPressed: '#0B4FD8',
   onPrimary: '#FFFFFF',
-  success: '#16A34A',
-  successSoft: '#DCFCE7',
-  danger: '#DC2626',
-  dangerSoft: '#FEE2E2',
-  warning: '#D97706',
-  warningSoft: '#FEF3C7',
-  flame: '#F97316',
-  shadow: 'rgba(15, 23, 42, 0.08)',
+  textPrimary: '#0B2A6F',
+  textSecondary: '#3A4E7A',
+  border: '#D6E0F7',
+  success: '#12A150',
+  error: '#D93636',
+  warning: '#F08A00',
+
+  textFaint: '#8494B8',
+  primarySoft: '#E3ECFF',
+  successSoft: '#E2F6EA',
+  errorSoft: '#FCE8E8',
+  warningSoft: '#FFF1DC',
+  brandBlue: '#1E5EFF',
+  brandCivil: '#0B2A6F',
+  shadow: 'rgba(11, 42, 111, 0.10)',
 };
 
 export const dark: Palette = {
   background: '#0A1330',
-  surface: '#111C40',
-  surfaceMuted: '#18254F',
-  border: '#24325F',
-  text: '#F1F5F9',
-  textMuted: '#A5B1C4',
-  textFaint: '#64748B',
+  surface: '#121D42',
+  surfaceAlt: '#18244F',
   primary: '#4C82FF',
-  primaryPressed: '#2459E0',
-  primaryFill: '#2F6BFF',
-  primarySoft: '#17295E',
+  primaryPressed: '#3B74FF',
   onPrimary: '#FFFFFF',
-  success: '#22C55E',
-  successSoft: '#12301F',
-  danger: '#F87171',
-  dangerSoft: '#3A1717',
-  warning: '#FBBF24',
-  warningSoft: '#3A2A0C',
-  flame: '#FB923C',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#A9B8DA',
+  border: '#24315E',
+  success: '#2BC46D',
+  error: '#FF6B6B',
+  warning: '#FFA733',
+
+  textFaint: '#6F80AD',
+  primarySoft: '#1B2C63',
+  successSoft: '#123A2A',
+  errorSoft: '#3D1C2A',
+  warningSoft: '#3A2C14',
+  brandBlue: '#4C82FF',
+  brandCivil: '#FFFFFF',
   shadow: 'rgba(0, 0, 0, 0.35)',
 };

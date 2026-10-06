@@ -152,7 +152,7 @@ function ModuleView({ detail, initialRow, initialBest }: ViewProps) {
 function StepTabs({ steps, active, done, onChange }: { steps: Step[]; active: Step; done: Record<Step, boolean>; onChange: (s: Step) => void }) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.tabs, { backgroundColor: colors.surfaceMuted }]} accessibilityRole="tablist">
+    <View style={[styles.tabs, { backgroundColor: colors.surfaceAlt }]} accessibilityRole="tablist">
       {steps.map((s) => {
         const selected = s === active;
         return (
@@ -166,9 +166,9 @@ function StepTabs({ steps, active, done, onChange }: { steps: Step[]; active: St
             <Ionicons
               name={done[s] ? 'checkmark-circle' : STEP_INFO[s].icon}
               size={18}
-              color={done[s] ? colors.success : selected ? colors.primary : colors.textMuted}
+              color={done[s] ? colors.success : selected ? colors.primary : colors.textSecondary}
             />
-            <AppText variant="label" style={{ color: selected ? colors.text : colors.textMuted }}>
+            <AppText variant="label" style={{ color: selected ? colors.textPrimary : colors.textSecondary }}>
               {STEP_INFO[s].label}
             </AppText>
           </Pressable>
