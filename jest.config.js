@@ -9,6 +9,8 @@ const projects = ['ios', 'android'].map((platform) => {
     ...preset,
     displayName: platform,
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    // civilaid/ is a separate app with its own tests.
+    testPathIgnorePatterns: ['/node_modules/', '<rootDir>/civilaid/'],
   };
 });
 
