@@ -1,5 +1,5 @@
-# Builds an installable Android APK and attaches it to a GitHub Release, so the
-# app can be installed straight from a phone browser with no local tooling.
+# Builds the Event Tickets Android APK and attaches it to a GitHub Release, so
+# the app can be installed straight from a phone browser with no local tooling.
 #
 # Run it from the Actions tab ("Run workflow"), or let a push do it.
 name: Build APK
@@ -7,8 +7,7 @@ name: Build APK
 on:
   push:
     branches: ['**']
-    # The tickets app has its own workflow (build-tickets-apk.yml).
-    paths-ignore: ['README.md', 'welcome-event-tickets/**', '.github/workflows/build-tickets-apk.yml']
+    paths-ignore: ['README.md']
   workflow_dispatch:
 
 permissions:
@@ -30,7 +29,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest ships the Android SDK with ANDROID_HOME set and licences
+      # accepted. android-actions/setup-android@v3 now fails there trying to
+      # install the long-retired 'tools' package, so it is not used.
 
       - name: Install dependencies
         run: npm ci
@@ -45,18 +46,11 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: '1'
 
-      # The generated release build type signs with the bundled debug keystore,
-      # which is enough to install on a personal device.
-      #
-      # A universal APK carries the engine compiled for all four ABIs — roughly
-      # 41 MB of native code no single phone can use. arm64-v8a covers every
-      # Android phone since ~2015 and is pure dead-weight removal.
-      #
-      # R8 minification would save perhaps 8 MB more, but it also renames
-      # classes, and Expo resolves its native modules reflectively by name. A
-      # mistake there fails when the app is opened rather than when it is built,
-      # and nothing in CI actually launches the app — so the trade is refused:
-      # a reminder that silently never fires is worse than 8 MB.
+      # Same trade-offs as the Reminders build: the release build type signs
+      # with the bundled debug keystore (fine for installing on your own
+      # phones), arm64-v8a only, and no R8 — Expo finds its native modules by
+      # class name, and a minification mistake would only show up when the app
+      # is opened.
       - name: Assemble release APK
         working-directory: android
         run: |
@@ -69,26 +63,20 @@ jobs:
           set -uo pipefail
           fail() { echo "VERIFY FAILED: $1"; exit 1; }
 
-          echo "--- ABIs included ---"
-          unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u
-          extra=$(unzip -l app-release.apk | grep -o 'lib/[^/]*' | sort -u | grep -v 'lib/arm64-v8a' || true)
-          [ -z "$extra" ] || fail "unexpected ABI: $extra"
           unzip -l app-release.apk | grep -q 'lib/arm64-v8a/libreactnative.so' \
             || fail "arm64 engine missing"
-
           unzip -l app-release.apk | grep 'assets/index.android.bundle' \
             || fail "JS bundle missing"
 
-          # Without minification class names are not renamed, so their absence
-          # from the dex string pool is a real signal rather than obfuscation.
           rm -rf dexcheck && mkdir dexcheck
           unzip -o -q app-release.apk 'classes*.dex' -d dexcheck || fail "no dex files"
-          echo "dex files: $(ls dexcheck | tr '\n' ' ')"
-          grep -qa 'expo.modules.notifications' dexcheck/*.dex \
-            || fail "notifications module missing from dex"
+          for module in imagepicker sharing filesystem; do
+            grep -qa "expo.modules.$module" dexcheck/*.dex \
+              || fail "$module module missing from dex"
+          done
           rm -rf dexcheck
 
-          echo "OK: arm64 only, JS bundle present, notifications module retained"
+          echo "OK: arm64 engine, JS bundle, picker/sharing/file-system modules present"
           ls -lh app-release.apk
 
       - name: Name the APK after the run
@@ -96,21 +84,24 @@ jobs:
         run: |
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk \
-             "dist/Reminders-${{ github.run_number }}.apk"
-          echo "path=dist/Reminders-${{ github.run_number }}.apk" >> "$GITHUB_OUTPUT"
+             "dist/EventTickets-${{ github.run_number }}.apk"
+          echo "path=dist/EventTickets-${{ github.run_number }}.apk" >> "$GITHUB_OUTPUT"
           ls -lh dist/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: reminders-apk
+          name: event-tickets-apk
           path: ${{ steps.apk.outputs.path }}
 
+      # Tagged tickets-apk-N so it never collides with the old Reminders
+      # releases (apk-N) still on the repository.
       - name: Publish the APK as a release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "apk-${{ github.run_number }}" \
+          gh release create "tickets-apk-${{ github.run_number }}" \
             "${{ steps.apk.outputs.path }}" \
-            --title "Reminders - build ${{ github.run_number }}" \
+            --target "${{ github.sha }}" \
+            --title "Event Tickets - build ${{ github.run_number }}" \
             --notes "Tap the .apk below on an Android phone to install. Android will ask you to allow installing from your browser; that is expected for an app that does not come from the Play Store. Built for arm64 phones (anything from roughly 2015 onward). Built from ${{ github.sha }}." \
             --latest

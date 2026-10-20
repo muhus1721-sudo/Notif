@@ -1,35 +1,32 @@
 {
   "expo": {
-    "name": "Reminders",
-    "slug": "personal-reminders",
+    "name": "Event Tickets",
+    "slug": "welcome-event-tickets",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "personalreminders",
+    "scheme": "welcometickets",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#0B0D12",
+    "backgroundColor": "#F4F5F8",
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.personalreminders.app",
+      "bundleIdentifier": "com.welcomeevent.tickets",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.personalreminders.app",
+      "package": "com.welcomeevent.tickets",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/adaptive-icon-background.png",
         "monochromeImage": "./assets/adaptive-icon-monochrome.png",
-        "backgroundColor": "#0B0D12"
+        "backgroundColor": "#3F5DDB"
       },
-      "permissions": [
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.SCHEDULE_EXACT_ALARM",
-        "android.permission.VIBRATE",
-        "android.permission.WAKE_LOCK"
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
       ]
     },
     "web": {
@@ -37,11 +34,11 @@
     },
     "plugins": [
       [
-        "expo-notifications",
+        "expo-image-picker",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#6C8CFF",
-          "defaultChannel": "reminders"
+          "photosPermission": "Choose your ticket design from your photos.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       [
@@ -50,7 +47,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#F4F5F8",
           "dark": {
             "backgroundColor": "#0B0D12"
           }

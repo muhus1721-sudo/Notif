@@ -11,7 +11,7 @@ type Props<T extends string> = {
   onChange: (value: T) => void;
 };
 
-/** Horizontally scrollable pill group — the repeat picker. */
+/** Horizontally scrollable pill group for picking one option. */
 export function Segmented<T extends string>({ options, value, onChange }: Props<T>) {
   const t = useTheme();
 

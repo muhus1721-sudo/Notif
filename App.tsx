@@ -1,186 +1,83 @@
-import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  FlatList,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   SafeAreaProvider,
   initialWindowMetrics,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import { EmptyState } from './src/components/EmptyState';
-import { PermissionBanner } from './src/components/PermissionBanner';
-import { ReminderEditor } from './src/components/ReminderEditor';
-import { ReminderRow } from './src/components/ReminderRow';
-import { describeNext, nextOccurrence } from './src/schedule';
-import { radius, space, useTheme } from './src/theme';
-import { Reminder, ReminderDraft } from './src/types';
-import { useReminders } from './src/useReminders';
+import { PrintScreen } from './src/screens/PrintScreen';
+import { SalesScreen } from './src/screens/SalesScreen';
+import { TicketScreen } from './src/screens/TicketScreen';
+import { space, useTheme } from './src/theme';
+import { useTickets } from './src/useTickets';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+type Tab = 'ticket' | 'print' | 'sales';
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'ticket', label: 'Ticket' },
+  { key: 'print', label: 'Print' },
+  { key: 'sales', label: 'Sales' },
+];
+
+const TAB_BAR_HEIGHT = 60;
 
 function Home() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const store = useReminders();
-  const { ready, permission, askForPermission, refreshPermission } = store;
-
-  const [editing, setEditing] = useState<Reminder | null>(null);
-  const [editorOpen, setEditorOpen] = useState(false);
-  /** Bumped on a timer so relative labels ("in 20 min") stay honest. */
-  const [, setTick] = useState(0);
-
-  const askedOnLaunch = useRef(false);
+  const store = useTickets();
+  const [tab, setTab] = useState<Tab | null>(null);
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => undefined);
-  }, [ready]);
+    if (store.ready) SplashScreen.hideAsync().catch(() => undefined);
+  }, [store.ready]);
 
-  // Ask for notification permission once, on the first launch that needs it.
-  useEffect(() => {
-    if (!ready || askedOnLaunch.current) return;
-    if (permission !== 'undetermined') return;
-    askedOnLaunch.current = true;
-    askForPermission().catch(() => undefined);
-  }, [askForPermission, permission, ready]);
-
-  // Coming back from system settings may mean permission changed under us.
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') refreshPermission().catch(() => undefined);
-    });
-    return () => sub.remove();
-  }, [refreshPermission]);
-
-  useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 30_000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Tapping a delivered notification opens that reminder.
-  useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as
-        | { reminderId?: string }
-        | undefined;
-      const match = store.reminders.find((r) => r.id === data?.reminderId);
-      if (match) {
-        setEditing(match);
-        setEditorOpen(true);
-      }
-    });
-    return () => sub.remove();
-  }, [store.reminders]);
-
-  const openNew = useCallback(() => {
-    setEditing(null);
-    setEditorOpen(true);
-  }, []);
-
-  const openExisting = useCallback((reminder: Reminder) => {
-    setEditing(reminder);
-    setEditorOpen(true);
-  }, []);
-
-  const closeEditor = useCallback(() => {
-    setEditorOpen(false);
-    setEditing(null);
-  }, []);
-
-  const handleSave = useCallback(
-    (draft: ReminderDraft) => {
-      if (editing) store.updateReminder(editing.id, draft);
-      else store.createReminder(draft);
-      closeEditor();
-    },
-    [closeEditor, editing, store]
-  );
-
-  const handleDelete = useCallback(
-    (id: string) => {
-      store.deleteReminder(id);
-      closeEditor();
-    },
-    [closeEditor, store]
-  );
-
-  const upcoming = store.reminders.filter((r) => r.enabled && nextOccurrence(r));
-  const subtitle = !store.reminders.length
-    ? 'No reminders yet'
-    : upcoming.length
-      ? `Next · ${describeNext(nextOccurrence(upcoming[0]))}`
-      : `${store.reminders.length} reminder${store.reminders.length === 1 ? '' : 's'} · none active`;
+  // First launch starts on the design; after that, straight to selling.
+  const current: Tab = tab ?? (store.design ? 'sales' : 'ticket');
+  const bottomInset = insets.bottom + TAB_BAR_HEIGHT + space.lg;
 
   return (
     <View style={[styles.screen, { backgroundColor: t.bg, paddingTop: insets.top }]}>
       <StatusBar style={t.dark ? 'light' : 'dark'} />
 
-      <View style={styles.header}>
-        <Text style={[styles.heading, { color: t.text }]}>Reminders</Text>
-        <Text style={[styles.subheading, { color: t.textDim }]}>{subtitle}</Text>
-      </View>
-
-      {!ready ? (
+      {!store.ready ? (
         <View style={styles.loading}>
           <ActivityIndicator color={t.textDim} />
         </View>
+      ) : current === 'ticket' ? (
+        <TicketScreen store={store} bottomInset={bottomInset} />
+      ) : current === 'print' ? (
+        <PrintScreen store={store} bottomInset={bottomInset} onNeedDesign={() => setTab('ticket')} />
       ) : (
-        <FlatList
-          data={store.reminders}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.list,
-            { paddingBottom: insets.bottom + space.xxl * 2.5 },
-          ]}
-          ListHeaderComponent={
-            <PermissionBanner state={permission} onRequest={askForPermission} />
-          }
-          ListHeaderComponentStyle={permission === 'granted' ? undefined : styles.bannerSpacing}
-          ListEmptyComponent={<EmptyState />}
-          renderItem={({ item }) => (
-            <ReminderRow
-              reminder={item}
-              onPress={() => openExisting(item)}
-              onToggle={(enabled) => store.toggleReminder(item.id, enabled)}
-            />
-          )}
-          keyboardShouldPersistTaps="handled"
-        />
+        <SalesScreen store={store} bottomInset={bottomInset} />
       )}
 
-      <Pressable
-        onPress={openNew}
-        accessibilityRole="button"
-        accessibilityLabel="Add reminder"
-        style={({ pressed }) => [
-          styles.fab,
-          {
-            backgroundColor: t.accent,
-            bottom: insets.bottom + space.xl,
-            transform: [{ scale: pressed ? 0.94 : 1 }],
-          },
+      <View
+        style={[
+          styles.tabBar,
+          { backgroundColor: t.card, borderColor: t.border, paddingBottom: insets.bottom, height: TAB_BAR_HEIGHT + insets.bottom },
         ]}
       >
-        <Text style={[styles.fabIcon, { color: t.accentText }]}>+</Text>
-      </Pressable>
-
-      <ReminderEditor
-        visible={editorOpen}
-        reminder={editing}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        onClose={closeEditor}
-      />
+        {TABS.map(({ key, label }) => {
+          const selected = key === current;
+          return (
+            <Pressable
+              key={key}
+              onPress={() => setTab(key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              style={styles.tab}
+            >
+              <View style={[styles.tabMark, { backgroundColor: selected ? t.accent : 'transparent' }]} />
+              <Text style={[styles.tabText, { color: selected ? t.text : t.textFaint }]}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -197,31 +94,16 @@ export default function App() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.md },
-  heading: { fontSize: 32, fontWeight: '800', letterSpacing: -0.8 },
-  subheading: { fontSize: 14, marginTop: 2 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { paddingHorizontal: space.lg, gap: space.md },
-  bannerSpacing: { marginBottom: space.md },
-  fab: {
+  tabBar: {
     position: 'absolute',
-    right: space.xl,
-    width: 60,
-    height: 60,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // A soft lift so the button reads as floating over the list.
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 6 },
-      },
-      android: { elevation: 8 },
-      default: {},
-    }),
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  fabIcon: { fontSize: 32, fontWeight: '300', lineHeight: 36, marginTop: -2 },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  tabMark: { width: 24, height: 3, borderRadius: 2 },
+  tabText: { fontSize: 14, fontWeight: '700' },
 });

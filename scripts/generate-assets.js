@@ -1,7 +1,7 @@
 /**
- * Generates the app's PNG assets (icon, adaptive icon layers, splash, notification
- * icon, favicon) from a single vector-ish bell definition, so the project has no
- * binary assets checked in that can't be regenerated.
+ * Generates the app's PNG assets (icon, adaptive icon layers, splash, favicon)
+ * from a single vector-ish ticket definition, so the project has no binary
+ * assets checked in that can't be regenerated.
  *
  * Run with: node scripts/generate-assets.js
  */
@@ -67,27 +67,26 @@ function roundedRect(x, y, cx, cy, halfW, halfH, r) {
   return Math.hypot(dx, dy) <= r;
 }
 
-const BODY_TOP = 0.2;
-const BODY_BOTTOM = 0.7;
-
 /**
- * Half-width of the bell body at `t` (0 at the crown, 1 at the mouth).
- * The fractional power rounds off the dome; the quartic adds the flare that
- * only kicks in near the bottom, leaving the sides almost straight between.
+ * A 2 : 1 ticket, tilted slightly, with a notch bitten from each long side at
+ * the tear line and a dotted perforation between the notches.
  */
-function bellHalfWidth(t) {
-  return 0.36 * (0.7 * Math.pow(t, 0.4) + 0.3 * Math.pow(t, 4));
-}
+const TILT = -0.26; // radians
+function inTicket(x, y) {
+  // Rotate the sample point into the ticket's own frame.
+  const dx = x - 0.5;
+  const dy = y - 0.5;
+  const u = 0.5 + dx * Math.cos(TILT) - dy * Math.sin(TILT);
+  const v = 0.5 + dx * Math.sin(TILT) + dy * Math.cos(TILT);
 
-function inBell(x, y) {
-  if (disc(x, y, 0.5, 0.165, 0.05)) return true; // top knob
-  if (y >= BODY_TOP && y <= BODY_BOTTOM) {
-    const t = (y - BODY_TOP) / (BODY_BOTTOM - BODY_TOP);
-    if (Math.abs(x - 0.5) <= bellHalfWidth(t)) return true;
+  if (!roundedRect(u, v, 0.5, 0.5, 0.42, 0.21, 0.05)) return false;
+  const tear = 0.66;
+  if (disc(u, v, tear, 0.29, 0.055) || disc(u, v, tear, 0.71, 0.055)) return false;
+  // Perforation: small gaps punched along the tear line.
+  if (Math.abs(u - tear) < 0.012 && v > 0.36 && v < 0.64 && Math.floor((v - 0.36) / 0.035) % 2 === 0) {
+    return false;
   }
-  if (roundedRect(x, y, 0.5, 0.692, 0.4, 0.036, 0.032)) return true; // rim
-  if (disc(x, y, 0.5, 0.79, 0.068)) return true; // clapper
-  return false;
+  return true;
 }
 
 // 4x4 supersampling gives clean antialiased edges without a rasteriser.
@@ -114,9 +113,9 @@ const hex = (h) => [
 /**
  * @param {number} size          square edge in px
  * @param {string|null} bg       background colour, or null for transparency
- * @param {string} fg            bell colour
- * @param {number} scale         bell size relative to the canvas
- * @param {string|null} plate    optional rounded plate behind the bell
+ * @param {string} fg            ticket colour
+ * @param {number} scale         ticket size relative to the canvas
+ * @param {string|null} plate    optional rounded plate behind the ticket
  */
 function render(size, bg, fg, scale, plate = null) {
   const buf = Buffer.alloc(size * size * 4);
@@ -124,7 +123,7 @@ function render(size, bg, fg, scale, plate = null) {
   const [fr, fgc, fb] = hex(fg);
   const [pr, pg, pb] = plate ? hex(plate) : [0, 0, 0];
   const inset = (1 - scale) / 2;
-  const bell = (x, y) => inBell((x - inset) / scale, (y - inset) / scale);
+  const ticket = (x, y) => inTicket((x - inset) / scale, (y - inset) / scale);
   const plateShape = (x, y) => roundedRect(x, y, 0.5, 0.5, 0.34, 0.34, 0.105);
 
   for (let py = 0; py < size; py++) {
@@ -143,7 +142,7 @@ function render(size, bg, fg, scale, plate = null) {
         }
       }
 
-      const c = coverage(px, py, size, bell);
+      const c = coverage(px, py, size, ticket);
       if (c > 0) {
         const na = a / 255 + (1 - a / 255) * c;
         r = (r * (a / 255) * (1 - c) + fr * c) / na;
@@ -163,21 +162,20 @@ function render(size, bg, fg, scale, plate = null) {
 
 /* -------------------------------------------------------------------- output */
 
-const INK = '#0B0D12';
-const ACCENT = '#6C8CFF';
+const ACCENT = '#3F5DDB';
+const PAPER = '#FFFFFF';
 const out = (name, buf) => {
   const file = path.join(__dirname, '..', 'assets', name);
   fs.writeFileSync(file, buf);
   console.log(`${name.padEnd(32)} ${(buf.length / 1024).toFixed(1)} KB`);
 };
 
-out('icon.png', render(1024, INK, ACCENT, 0.62));
-out('adaptive-icon.png', render(1024, null, ACCENT, 0.42));
-out('adaptive-icon-background.png', render(1024, INK, INK, 0.0001));
-out('adaptive-icon-monochrome.png', render(1024, null, '#ffffff', 0.42));
-out('splash-icon.png', render(512, null, ACCENT, 0.7));
-out('notification-icon.png', render(96, null, '#ffffff', 0.8));
-out('favicon.png', render(64, INK, ACCENT, 0.62));
+out('icon.png', render(1024, ACCENT, PAPER, 0.8));
+out('adaptive-icon.png', render(1024, null, PAPER, 0.56));
+out('adaptive-icon-background.png', render(1024, ACCENT, ACCENT, 0.0001));
+out('adaptive-icon-monochrome.png', render(1024, null, '#ffffff', 0.56));
+out('splash-icon.png', render(512, null, ACCENT, 0.9));
+out('favicon.png', render(64, ACCENT, PAPER, 0.8));
 
 // Quick terminal preview so the shape can be eyeballed without opening a file.
 if (process.argv.includes('--preview')) {
@@ -185,7 +183,7 @@ if (process.argv.includes('--preview')) {
   for (let y = 0; y < 34; y++) {
     let line = '';
     for (let x = 0; x < 34; x++) {
-      const c = coverage(x, y, 34, inBell);
+      const c = coverage(x, y, 34, inTicket);
       line += ramp[Math.min(ramp.length - 1, Math.round(c * (ramp.length - 1)))];
     }
     console.log(line);

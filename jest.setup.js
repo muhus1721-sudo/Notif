@@ -6,27 +6,49 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-jest.mock('expo-notifications', () => ({
-  setNotificationHandler: jest.fn(),
-  setNotificationChannelAsync: jest.fn(async () => null),
-  getPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true, status: 'granted' })),
-  requestPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true, status: 'granted' })),
-  scheduleNotificationAsync: jest.fn(async () => 'notif-id'),
-  cancelScheduledNotificationAsync: jest.fn(async () => undefined),
-  getAllScheduledNotificationsAsync: jest.fn(async () => []),
-  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-  AndroidImportance: { MAX: 7 },
-  AndroidNotificationVisibility: { PUBLIC: 1 },
-  IosAuthorizationStatus: { PROVISIONAL: 3 },
-  SchedulableTriggerInputTypes: { DATE: 'date', DAILY: 'daily', WEEKLY: 'weekly' },
-}));
-
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn(async () => undefined),
   hideAsync: jest.fn(async () => undefined),
 }));
 
-jest.mock('expo-haptics', () => ({ selectionAsync: jest.fn(async () => undefined) }));
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(async () => ({ canceled: true, assets: null })),
+  UIImagePickerPreferredAssetRepresentationMode: { Compatible: 'compatible' },
+}));
+
+jest.mock('expo-sharing', () => ({ shareAsync: jest.fn(async () => undefined) }));
+
+// expo-file-system's classes are backed by a native module that doesn't exist
+// under jest; an in-memory stand-in is enough for the code paths tested here.
+jest.mock('expo-file-system', () => {
+  const files = new Map();
+  class File {
+    constructor(...parts) {
+      this.uri = parts.map((p) => (typeof p === 'string' ? p : p.uri)).join('/');
+    }
+    get exists() {
+      return files.has(this.uri);
+    }
+    async bytes() {
+      return files.get(this.uri);
+    }
+    write(content) {
+      files.set(this.uri, content);
+    }
+    delete() {
+      files.delete(this.uri);
+    }
+  }
+  class Directory extends File {
+    create() {}
+  }
+  return {
+    File,
+    Directory,
+    Paths: { cache: { uri: 'file:///cache' }, document: { uri: 'file:///document' } },
+    __files: files,
+  };
+});
 
 // The native safe-area module isn't present under jest, so SafeAreaProvider
 // would render nothing. Feed it fixed metrics the way a device would.
@@ -38,17 +60,5 @@ jest.mock('react-native-safe-area-context', () => {
       frame: { x: 0, y: 0, width: 390, height: 844 },
       insets: { top: 47, left: 0, right: 0, bottom: 34 },
     },
-  };
-});
-
-// The picker reaches for a native TurboModule at import time, which doesn't
-// exist under jest. A plain stub is enough for render assertions.
-jest.mock('@react-native-community/datetimepicker', () => {
-  const React = require('react');
-  const DateTimePicker = () => React.createElement('RNDateTimePicker', null);
-  return {
-    __esModule: true,
-    default: DateTimePicker,
-    DateTimePickerAndroid: { open: jest.fn(), dismiss: jest.fn(async () => true) },
   };
 });
